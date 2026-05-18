@@ -4,15 +4,15 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "omegga-models"
-version = "2026.5.8"
+version = "2026.5.18"
 description = "Shared inference bundles for the omegga egg-sorting pipeline (7 stages)"
 readme = "README.md"
 requires-python = ">=3.10"
 authors = [{ name = "THEO Labs", email = "leon@theolabs.xyz" }]
 license = { text = "Proprietary" }
 
-# Lightweight stages (1, 4) and the placeholder stages (3, 6) work with just numpy + cv2.
-# Heavy stages (2, 5, 7) lazy-load their deps — install them via the [ml] extra below
+# Lightweight stages (1) and the placeholder stages (3, 6) work with just numpy + cv2.
+# Heavy stages (2, 4, 5, 7) lazy-load their deps — install them via the [ml] extra below
 # if you actually call into those stages.
 dependencies = [
     "numpy>=1.24",
@@ -36,5 +36,6 @@ include = ["omegga_models*"]
 [tool.setuptools.package-data]
 "omegga_models.stage_1_dark" = ["*.json"]
 "omegga_models.stage_2_anomaly_1" = ["*.json", "*.npz"]
+"omegga_models.stage_4_unfertilized" = ["*.pth"]
 "omegga_models.stage_5_masking" = ["*.pth"]
 "omegga_models.stage_7_bbd" = ["*.pth"]
