@@ -65,4 +65,7 @@ production).
 - ✅ Stage 4 — Hue-LogReg (5 features)
 - ✅ Stage 5 — U-Net mobilenet_v3_small (notebook 22)
 - ❌ Stage 6 — placeholder, returns `False`
-- ✅ Stage 7 — EfficientNet-B0 binary (notebook 21)
+- ✅ Stage 7 — EfficientNet-B0 binary, **Noisy-Student weights** (Sweep Phase 4c, 2026-05-18)
+  - Backbone: `tf_efficientnet_b0.ns_jft_in1k`, cw=3.0, lr=5e-4
+  - Test F1 0.824, Recall 0.753, Precision 0.910 (vs legacy BG-Aug: F1 0.770, R 0.684)
+  - Legacy `efficientnet_b0_bgaug.pth` is kept in the package for rollback

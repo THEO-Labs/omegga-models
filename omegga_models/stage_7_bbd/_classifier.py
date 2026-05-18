@@ -72,8 +72,17 @@ import numpy as np
 _HERE = Path(__file__).resolve().parent
 
 # ──────────────────────────────────────────────────────────────────────────
-# Operating-point — picked on val-set in notebook 7 to balance recall / precision
-# at α≈0.013 / β≈0.012 on the production data distribution.
+# Operating-point.
+#
+# Legacy BG-Aug model used 0.405 (picked in notebook 7 to hit α≈0.013/β≈0.012
+# on the v1 data distribution). The noisy_student model trained in Phase 4c
+# with cw=3.0 reports the following at threshold=0.5 on the B-binary test set:
+#   F1=0.824, Recall=0.753, Precision=0.910, α=0.247
+# A dedicated threshold-tuning pass for noisy_student is pending (see
+# Phase 4-d/Threshold-Tuning entries in TRAINING_RESULTS.md). Until then we
+# keep 0.405 as a conservative low-threshold default — it pulls the operating
+# point toward higher recall, which matches the recall-priority KPI for the
+# Abnahme. Adjust here when fresh threshold sweep numbers are available.
 # ──────────────────────────────────────────────────────────────────────────
 THRESHOLD = 0.405
 
@@ -82,10 +91,20 @@ _RGB_MEAN = (0.485, 0.456, 0.406)
 _RGB_STD  = (0.229, 0.224, 0.225)
 _INPUT_SIZE = 224
 
-# Default checkpoint location (next to this file). Newer checkpoints
-# train with bg-augmentation but stay drop-in compatible at the
-# state_dict level, so the loader does not change.
-_DEFAULT_CKPT = _HERE / "efficientnet_b0_bgaug.pth"
+# Default checkpoint location (next to this file).
+#
+# Stage 7 is on the noisy_student EfficientNet-B0 variant since 2026-05-18
+# (Sweep Campaign 2, Phase 4c winner). Earlier weights are kept as fallback:
+#   - efficientnet_b0_noisy_student.pth (current default, F1=0.824, R=0.753)
+#   - efficientnet_b0_bgaug.pth          (legacy BG-Aug, F1=0.770, R=0.684)
+# The state_dicts have the same shape (binary head over EfficientNet-B0
+# backbone), but the noisy_student variant requires the
+# tf_efficientnet_b0.ns_jft_in1k timm tag for clean loading — see
+# _load_model() below.
+_DEFAULT_CKPT = _HERE / "efficientnet_b0_noisy_student.pth"
+# Backbone tag that matches the checkpoint above. Override via env if you
+# need to roll back to the BG-Aug model.
+_BACKBONE_NAME = "tf_efficientnet_b0.ns_jft_in1k"
 
 
 # ──────────────────────────────────────────────────────────────────────────
@@ -130,9 +149,17 @@ def _load_model(checkpoint_path: Path | None = None):
 
     _DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
 
-    model = timm.create_model("efficientnet_b0", pretrained=False, num_classes=2, in_chans=3)
-
     ckpt = torch.load(str(ckpt_path), map_location=_DEVICE, weights_only=False)
+    # Pick backbone tag from the checkpoint metadata when available so we can
+    # transparently load both legacy bgaug ("efficientnet_b0") and the current
+    # noisy_student ("tf_efficientnet_b0.ns_jft_in1k") weights.
+    if isinstance(ckpt, dict) and ckpt.get("model_name"):
+        backbone = ckpt["model_name"]
+    else:
+        backbone = _BACKBONE_NAME
+
+    model = timm.create_model(backbone, pretrained=False, num_classes=2, in_chans=3)
+
     if isinstance(ckpt, dict) and "model_state_dict" in ckpt:
         state_dict = ckpt["model_state_dict"]
     else:
