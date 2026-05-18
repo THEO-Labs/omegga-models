@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "omegga-models"
-version = "2026.5.19"
+version = "2026.5.20"
 description = "Shared inference bundles for the omegga egg-sorting pipeline (7 stages)"
 readme = "README.md"
 requires-python = ">=3.10"
