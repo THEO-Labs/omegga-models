@@ -3,14 +3,15 @@
 Drop-in replacement for app/pipeline/dark_heuristic.py.
 Exposes is_too_dark(crop_bgr) -> (bool, dict) matching the existing signature.
 
-Version: 2026-05-08_logreg_t0p57
-Trained: 2026-05-08
-Dates: ['2026-04-27', '2026-04-29']
-n_too_dark: 2002
-n_not_too_dark: 32982
-Test AUC: 0.9989
-Test AP: 0.9703
-Threshold: 0.5680 (Recall >= 99.5% with min FPR)
+Version: 2026-05-18_logreg_v2_t0p484
+Trained: 2026-05-18
+Dates: ['2026-04-09', '2026-04-27', '2026-04-29', '2026-04-30', '2026-05-12']
+Jetsons: ['henne-01', 'henne-02']
+n_too_dark: 10202 (train) + 3909 (test)
+n_not_too_dark: 45392 (train) + 15775 (test)
+Test AUC: 0.9990
+Test AP:  0.9976
+Threshold: 0.4840 (Recall >= 99.0% with min FPR (per-video held-out))
 
 Pure numpy + cv2. No sklearn at runtime.
 """
@@ -21,11 +22,11 @@ import cv2
 import numpy as np
 
 _FEATURES = ['V_mean', 'V_std', 'V_p95', 'pct_V_below_20', 'pct_V_below_30', 'pct_V_below_50', 'L_mean', 'L_std', 'L_p95', 'S_mean']
-_MEAN = np.array([96.894110, 60.822402, 209.264800, 14.757736, 21.240465, 29.870590, 62.105662, 47.435095, 162.920792, 208.918260], dtype=np.float64)
-_STD  = np.array([27.006142, 16.154284, 55.847290, 16.925221, 20.073497, 20.101572, 19.668222, 14.352788, 60.445540, 21.801283], dtype=np.float64)
-_COEF = np.array([6.119338, -2.600125, -0.702123, -0.341421, -1.003922, -1.471393, -11.754046, 2.938669, 0.298177, -2.269262], dtype=np.float64)
-_INTERCEPT = -6.071730
-_THRESHOLD = 0.5680
+_MEAN = np.array([92.097790, 56.704490, 194.597807, 16.065695, 22.973856, 32.978924, 56.810012, 42.364185, 144.524814, 214.427901], dtype=np.float64)
+_STD  = np.array([32.660618, 19.034230, 66.190742, 18.344286, 21.172583, 22.538002, 23.313764, 16.519486, 65.314377, 22.308043], dtype=np.float64)
+_COEF = np.array([-0.332182, -6.056979, -0.176027, 0.857362, -1.161299, 2.548901, -2.260461, 2.861020, 0.000000, 0.304777], dtype=np.float64)
+_INTERCEPT = -4.902378
+_THRESHOLD = 0.4840
 
 
 def _compute_features(crop_bgr: np.ndarray) -> np.ndarray:
