@@ -28,13 +28,16 @@ import numpy as np
 
 _HERE = Path(__file__).resolve().parent
 
-# Operating point — picked for production deployment (recall-priority).
-# Sweep on full 5-day eval (60310 eggs):
-#   thr=0.175  Recall 99.4%   F2  9.99%   (default, production)
-#   thr=0.334  Recall 95.0%   F2  ~6%     (medium)
-#   thr=0.40   Recall 93.0%   F2  ~5%     (labeling-tool default)
-#   thr=0.503  Recall 90.0%   F2  0.78%   (precision-priority)
-THRESHOLD = 0.175
+# Operating point — pipeline-balanced (2026-05-18).
+# Re-tuned via sampled cascade evaluation (14.5k eggs, post-black-purge + Stage 2 v2):
+#   thr=0.175  Pipeline F1 0.38%  F2 14.15%   (legacy recall-priority)
+#   thr=0.30   Pipeline F1 0.43%  F2  8.70%
+#   thr=0.40   Pipeline F1 0.48%  F2  7.54%   ← current default
+#   thr=0.50   Pipeline F1 0.50%  F2  7.04%
+# thr=0.40 picked because F1 stays well under 1% while F2 halves vs the old
+# 0.175 default — i.e., we throw away ~half as many OK eggs without missing
+# notably more unfertilized eggs.
+THRESHOLD = 0.40
 
 # ImageNet RGB stats (model trained with this normalization on top of per-image-norm)
 _RGB_MEAN = np.array([0.485, 0.456, 0.406], dtype=np.float32)
