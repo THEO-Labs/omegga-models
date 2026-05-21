@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "omegga-models"
-version = "2026.5.21"
+version = "2026.5.21.1"
 description = "Shared inference bundles for the omegga egg-sorting pipeline (7 stages)"
 readme = "README.md"
 requires-python = ">=3.10"
@@ -39,3 +39,4 @@ include = ["omegga_models*"]
 "omegga_models.stage_4_unfertilized" = ["*.pth"]
 "omegga_models.stage_5_masking" = ["*.pth"]
 "omegga_models.stage_7_bbd" = ["*.pth"]
+"omegga_models.stage_7b_marbling" = ["*.pth"]
