@@ -3,15 +3,16 @@
 Drop-in replacement for app/pipeline/dark_heuristic.py.
 Exposes is_too_dark(crop_bgr) -> (bool, dict) matching the existing signature.
 
-Version: 2026-05-18_logreg_v2_t0p484
-Trained: 2026-05-18
-Dates: ['2026-04-09', '2026-04-27', '2026-04-29', '2026-04-30', '2026-05-12']
+Version: 2026-05-22_logreg_v3_t0p345
+Trained: 2026-05-22
+Dates: ['2026-04-09', '2026-04-27', '2026-04-29', '2026-04-30', '2026-05-07',
+        '2026-05-08', '2026-05-11', '2026-05-12']
 Jetsons: ['henne-01', 'henne-02']
-n_too_dark: 10202 (train) + 3909 (test)
-n_not_too_dark: 45392 (train) + 15775 (test)
-Test AUC: 0.9990
-Test AP:  0.9976
-Threshold: 0.4840 (Recall >= 99.0% with min FPR (per-video held-out))
+n_too_dark: 15664 (train) + 5577 (test)
+n_not_too_dark: 76440 (train) + 25749 (test)
+Test AUC: 0.9998
+Test AP:  0.9994
+Threshold: 0.3445 (Recall >= 99.5% with min FPR (per-video held-out))
 
 Pure numpy + cv2. No sklearn at runtime.
 """
@@ -22,11 +23,11 @@ import cv2
 import numpy as np
 
 _FEATURES = ['V_mean', 'V_std', 'V_p95', 'pct_V_below_20', 'pct_V_below_30', 'pct_V_below_50', 'L_mean', 'L_std', 'L_p95', 'S_mean']
-_MEAN = np.array([92.097790, 56.704490, 194.597807, 16.065695, 22.973856, 32.978924, 56.810012, 42.364185, 144.524814, 214.427901], dtype=np.float64)
-_STD  = np.array([32.660618, 19.034230, 66.190742, 18.344286, 21.172583, 22.538002, 23.313764, 16.519486, 65.314377, 22.308043], dtype=np.float64)
-_COEF = np.array([-0.332182, -6.056979, -0.176027, 0.857362, -1.161299, 2.548901, -2.260461, 2.861020, 0.000000, 0.304777], dtype=np.float64)
-_INTERCEPT = -4.902378
-_THRESHOLD = 0.4840
+_MEAN = np.array([93.136043, 57.457108, 196.793383, 17.471206, 24.350954, 33.508217, 57.840718, 43.165159, 147.470126, 213.192446], dtype=np.float64)
+_STD  = np.array([34.108737, 19.957500, 68.599574, 20.844971, 23.884122, 24.288883, 23.673221, 16.815659, 66.091960, 23.749525], dtype=np.float64)
+_COEF = np.array([0.000000, -8.549931, -0.346145, 1.713043, 0.000000, 3.108595, -1.735229, 2.741589, 0.575815, 0.919123], dtype=np.float64)
+_INTERCEPT = -4.897093
+_THRESHOLD = 0.3445
 
 
 def _compute_features(crop_bgr: np.ndarray) -> np.ndarray:
