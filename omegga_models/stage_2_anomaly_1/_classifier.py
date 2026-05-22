@@ -1,12 +1,12 @@
-"""Stage 2 — Anomaly Low-Cost v2 (handcrafted features only).
+"""Stage 2 — Anomaly Low-Cost v3 (handcrafted features only).
 
 L1-LogReg on 19 cv2/numpy features (hue + shape). No CLIP, no torch.
 Pure numpy + cv2 — Jetson-friendly, ~5-10ms per crop.
 
-Version: v2 — see trash_logreg.json for trained constants.
-Trained on all 5 days (henne-01 + henne-02), target = primary=unclassifiable
-AND dark_image != 'dark'. Stage 1 (dark) should run first to filter out the
-~94% of unclassifiable eggs that are also dark.
+Version: v3 — see trash_logreg.json for trained constants.
+Trained on 8 (day, jetson) combos (5 v2 days + 07.05/08.05/11.05), target =
+primary=unclassifiable AND dark_image != 'dark'. Stage 1 (dark) should run
+first to filter out the ~92% of unclassifiable eggs that are also dark.
 
 Dependencies:
     pip install numpy opencv-python
@@ -15,8 +15,8 @@ Public API (via __init__.py):
     is_anomaly(crop_bgr) -> (bool, float)
         Returns (is_trash, P(trash)).
 
-Threshold 0.75 = 84% Recall / 44% Precision / 1.6% FPR on per-video held-out
-across all 5 days. Adjust if you want more recall (lower) or fewer FP (higher).
+Threshold 0.858 = 80% Recall / 55% Precision / 1.2% FPR on per-video held-out
+across all 8 days. Adjust if you want more recall (lower) or fewer FP (higher).
 """
 from __future__ import annotations
 
