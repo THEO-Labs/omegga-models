@@ -1,13 +1,21 @@
-"""Orange (unfertilized) Defect Classifier — CNN v5.
+"""Orange (unfertilized) Defect Classifier — CNN v4 (2026-05-22).
 
-EfficientNet-B0 (4.01M params, 128x128) trained on 5 days of v2-schema data
-(60310 eggs / 2259 unfertilized across henne-01 + henne-02). Uses **per-image
-normalization** preprocessing so absolute brightness drift across days does not
-shift the score distribution.
+EfficientNet-B0 NoisyStudent (4.01M params, 128x128) trained on 8 days of
+v2-schema data (94,073 eggs / 4,263 unfertilized across henne-01 + henne-02:
+09.04, 27.04, 29.04, 30.04, 07.05, 08.05, 11.05, 12.05). Recipe = same as
+BBD-v2 (focal loss alpha=0.25 gamma=2, MixUp 0.2, pos_weight=8, weighted
+sampler). Uses **per-image normalization** preprocessing so absolute brightness
+drift across days does not shift the score distribution.
 
-Default THRESHOLD = 0.175 (production recall-priority: 99.4% recall, ~10% OK-FP
-on the 5-day eval). Per-Stage-4-Pipeline contract the upstream big-black
-detector catches the residual FP — so we err on the recall side here.
+Test AUC: 0.9964 (best at epoch 21/30).
+
+Threshold sweep (per-video held-out):
+    thr=0.476  R=95.02%  P=86.1%  FP=142  FN=46
+    thr=0.603  R=93.07%  P=96.2%  FP= 34  FN=64   <- current default
+    thr=0.769  R=90.25%  P=99.3%  FP=  6  FN=90
+
+Default THRESHOLD = 0.60: balanced — R=93% / P=96% / FPR very low. The upstream
+black detector + BBD downstream still rescue the residual misses.
 
 Dependencies: numpy + opencv-python + torch + timm. First call lazy-loads
 the model (~1-3s on Jetson Orin).
@@ -15,9 +23,6 @@ the model (~1-3s on Jetson Orin).
 API:
     classify_crop(img_bgr) -> (P(orange), is_orange_bool)
     classify_crops_batch(imgs_bgr) -> list[(P, is_orange_bool)]
-
-Trained 2026-05-15, see models/Stage 4/2026-05-17_cnn_efficientnetb0_v5_t0p175
-in omegga-ml-training for full performance breakdown and per-day metrics.
 """
 from __future__ import annotations
 
@@ -28,16 +33,14 @@ import numpy as np
 
 _HERE = Path(__file__).resolve().parent
 
-# Operating point — pipeline-balanced (2026-05-18).
-# Re-tuned via sampled cascade evaluation (14.5k eggs, post-black-purge + Stage 2 v2):
-#   thr=0.175  Pipeline F1 0.38%  F2 14.15%   (legacy recall-priority)
-#   thr=0.30   Pipeline F1 0.43%  F2  8.70%
-#   thr=0.40   Pipeline F1 0.48%  F2  7.54%   ← current default
-#   thr=0.50   Pipeline F1 0.50%  F2  7.04%
-# thr=0.40 picked because F1 stays well under 1% while F2 halves vs the old
-# 0.175 default — i.e., we throw away ~half as many OK eggs without missing
-# notably more unfertilized eggs.
-THRESHOLD = 0.40
+# Operating point — v4 balanced (2026-05-22).
+# Per-video held-out sweep on 8-day training data:
+#   thr=0.476  R=95.02%  P=86.1%  FP=142  FN=46
+#   thr=0.603  R=93.07%  P=96.2%  FP= 34  FN=64   <- chosen
+#   thr=0.769  R=90.25%  P=99.3%  FP=  6  FN=90
+# thr=0.60 picked: R=93% catches almost all unfert, P=96% means very few OK
+# eggs leaked to AGAIN bucket.
+THRESHOLD = 0.60
 
 # ImageNet RGB stats (model trained with this normalization on top of per-image-norm)
 _RGB_MEAN = np.array([0.485, 0.456, 0.406], dtype=np.float32)
