@@ -22,4 +22,4 @@ so importing this package is cheap.
 """
 from __future__ import annotations
 
-__version__ = "2026.5.26.2"
+__version__ = "2026.5.27.1"
